@@ -131,15 +131,54 @@ export const loginUserController = asyncHandler(async (req, res) => {
  **/
 
 export const getUserProfileController = asyncHandler(async(req, res) => {
-    // get token from header
-    const token = getTokenFromHeader(req);
+    // find the user
+    const user = await User.findById(req.userAuthId).populate("orders");
 
-    // verified token
-    const verified = verifyToken(token);
+    res.status(201).json({
+        msg: "User Profile Fetched Successfully",
+        user
+    })
+})
 
-    
-    res.json({
-        msg: 'Welcome to Profile Page'
+/**
+ * @desc   Update user shipping address
+ * @route  PUT /api/v1/users/update/shipping
+ * @access Private
+ **/
+
+export const updateShippingAddressController = asyncHandler(async(req, res) => {
+    const { firstName, 
+        lastName, 
+        address, 
+        city, 
+        postalCode, 
+        province, 
+        country,
+        phone } = req.body;
+
+    // find the user by id
+    // and then update the shipping address
+    const user = await User.findByIdAndUpdate(req.userAuthId, {
+        shippingAddress: {
+            firstName, 
+            lastName, 
+            address, 
+            city, 
+            postalCode, 
+            province, 
+            country,
+            phone
+        },
+        hasShippingAddress: true,
+    }, {
+        new: true
+    });
+
+    // send response
+    res.status(201).json({
+        status: "success",
+        msg: "User shipping address updated successfully",
+        user,
     })
 })
 

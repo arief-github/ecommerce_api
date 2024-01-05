@@ -15,6 +15,12 @@ export const createOrderController = asyncHandler(async (req, res) => {
     const { orderItems, shippingAddress, totalPrice } = req.body;
     // find the user that do order
     const user = await User.findById(req.userAuthId);    
+    
+    // Check if user has Shipping Address
+    if(!user?.hasShippingAddress) {
+        throw createError('Please provide shipping address', 400);
+    }
+    
     // Check if order isn't empty
     if (orderItems?.length <= 0) {
         throw createError("No Order Items", 400);
