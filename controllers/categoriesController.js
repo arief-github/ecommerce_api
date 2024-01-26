@@ -23,6 +23,7 @@ export const createCategoryController = asyncHandler(async(req, res) => {
     const category = await Category.create({
         name: name.toLowerCase(),
         user: req.userAuthId,
+        image: req.file.path,
     });
 
     res.status(201).json({

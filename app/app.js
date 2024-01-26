@@ -23,7 +23,7 @@ const app = express();
 // cors
 app.use(cors());
 // logger
-app.use(logger);
+app.use(logger); 
 // pass incoming data
 app.use(express.json());
 

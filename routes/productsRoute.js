@@ -6,10 +6,11 @@ import { createProductController,
      deleteProductController
     } from '../controllers/productsController.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
+import upload from '../config/fileUpload.js';
 
 const productsRoutes = express.Router();
 
-productsRoutes.post("/", isLoggedIn, createProductController)
+productsRoutes.post("/", isLoggedIn, upload.array('files') ,createProductController)
 productsRoutes.get("/", getProductsController)
 productsRoutes.get("/:id", getProductController)
 productsRoutes.put("/:id/update", isLoggedIn, updateProductController)
