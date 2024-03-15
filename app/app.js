@@ -8,9 +8,12 @@ import categoriesRouter from "../routes/categoriesRoute.js";
 import brandRouter from "../routes/brandsRoute.js";
 import colorsRouter from "../routes/colorsRoute.js";
 import reviewsRouter from "../routes/reviewsRoute.js";
+import orderRouter from "../routes/orderRoute.js";
+import couponsRouter from '../routes/couponsRoute.js';
+
 import { globalErrorHandler, notFound } from '../middlewares/globalErrorHandler.js';
 import logger from "../lib/logger.js";
-import orderRouter from "../routes/orderRoute.js";
+
 
 // load env to memory
 dotenv.config();
@@ -35,7 +38,8 @@ app.use("/api/v1/categories/", categoriesRouter);
 app.use("/api/v1/brands/", brandRouter);
 app.use("/api/v1/colors/", colorsRouter);
 app.use("/api/v1/reviews/", reviewsRouter);
-app.use("/api/v1/orders/", orderRouter)
+app.use("/api/v1/orders/", orderRouter);
+app.use("/api/v1/coupons", couponsRouter);
 
 // error handler
 app.use(globalErrorHandler)
