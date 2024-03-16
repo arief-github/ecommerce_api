@@ -80,19 +80,27 @@ export const createOrderController = asyncHandler(async (req, res) => {
      user.orders.push(order?._id);
      await user.save();  
 
-    // make payment (stripe)
-    const session = await stripe.checkout.sessions.create({
-        line_items: [{
+     // convert order items to have same structure with stripe need
+     const convertedOrders = orderItems?.map((item) => {
+         return {
             price_data: {
                 currency: "usd",
                 product_data: {
-                    name: 'Hats',
-                    description: 'Best Hats Minimalist'
+                    name: item?.name,
+                    description: item?.description,
                 },
-                unit_amount: 10 * 100
+                unit_amount: item?.price * 100,
             },
-            quantity: 2,
-        }],
+            quantity: item?.qty,
+         }
+     })
+
+    // make payment (stripe)
+    const session = await stripe.checkout.sessions.create({
+        line_items: convertedOrders,
+        metadata: {
+            orderId: JSON.stringify(order?._id),
+        },
         mode: 'payment',
         success_url: 'http://localhost:3000/success',
         cancel_url: 'http://localhost:3000/cancel'
@@ -126,6 +134,26 @@ export const getAllOrdersController = asyncHandler(async (req, res) => {
        orders
    })
 });
+
+/**
+ * @desc   get single orders
+ * @route  GET /api/v1/orders/:id
+ * @access Private/Admin
+ **/
+
+export const getSingleOrderController = asyncHandler(async (req, res) => {
+    // get the id from the param
+    const id = req.params.id;
+
+    const order = await Order.findById(id);
+
+    // sending response
+    res.status(201).json({
+        success: true,
+        message: "Single Order Showed",
+        order,
+    })
+})
 
 /**
  * @desc   Get Sales sum of orders
@@ -185,3 +213,28 @@ export const getOrdersStatisticsController = asyncHandler(async (req, res) => {
         saleToday,
     }); 
 });
+
+/**
+ * @desc   update order to delivered
+ * @route  GET /api/v1/orders/update/:id
+ * @access Private/Admin
+ **/
+
+export const updateOrderController = asyncHandler(async (req, res) => {
+    // get the id params
+    const id = req.params.id;
+
+    // update the order status
+    const updateOrder = await Order.findByIdAndUpdate(id, {
+        status: req.body.status
+    }, {
+        new: true
+    });
+
+    // send the response
+    res.status(201).json({
+        success: true,
+        message: "Order has been updated",
+        updateOrder
+    })
+})

@@ -13,6 +13,8 @@ import couponsRouter from '../routes/couponsRoute.js';
 
 import { globalErrorHandler, notFound } from '../middlewares/globalErrorHandler.js';
 import logger from "../lib/logger.js";
+import Stripe from 'stripe';
+import Order from '../models/Order.js';
 
 
 // load env to memory
@@ -22,6 +24,55 @@ dotenv.config();
 dbConnect();
 
 const app = express();
+const stripe = new Stripe(process.env.STRIPE_KEY)
+
+// This is your Stripe CLI webhook secret for testing your endpoint locally.
+const endpointSecret = "whsec_07e0d1dc580a56b8119fba8203a9768501e1f8bfb2f00b7350871467d28cab05";
+
+app.post('/webhook', express.raw({type: 'application/json'}), async (request, response) => {
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+  } catch (err) {
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  // Handle the event
+  if (event.type === "checkout.session.completed") {
+    // update the order
+    const session = event.data.object;
+    const { orderId } = session?.metadata;
+    const paymentStatus = session?.payment_status;
+    const paymentMethod = session?.payment_method_types[0];
+    const totalAmount = session?.amount_total;
+    const currency = session?.currency;
+
+    // then find the order
+    const order = await Order.findByIdAndUpdate(
+      JSON.parse(orderId),
+      {
+        totalPrice: totalAmount / 100,
+        currency,
+        paymentMethod,
+        paymentStatus
+      },
+      {
+        new: true,
+      }
+    )
+
+    console.log(order);
+  } else {
+    return;
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
 
 // cors
 app.use(cors());
@@ -29,7 +80,6 @@ app.use(cors());
 app.use(logger); 
 // pass incoming data
 app.use(express.json());
-
 
 // routes
 app.use("/api/v1/users/", userRoutes);

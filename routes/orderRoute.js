@@ -1,12 +1,13 @@
 import express from "express";
 import {isLoggedIn} from "../middlewares/isLoggedIn.js";
-import {createOrderController,getOrdersStatisticsController, getAllOrdersController} from "../controllers/orderController.js";
-import isAdmin from "../middlewares/isAdmin.js";
+import {createOrderController, updateOrderController, getOrdersStatisticsController, getAllOrdersController, getSingleOrderController} from "../controllers/orderController.js";
 
 const orderRouter = express.Router();
 
 orderRouter.post("/", isLoggedIn, createOrderController);
-orderRouter.get("/", isLoggedIn, isAdmin, getAllOrdersController);
+orderRouter.put("/update/:id", isLoggedIn, updateOrderController);
+orderRouter.get("/", isLoggedIn, getAllOrdersController);
+orderRouter.get("/:id", isLoggedIn, getSingleOrderController);
 orderRouter.get("/sales/stats", isLoggedIn, getOrdersStatisticsController);
 
 export default orderRouter;
