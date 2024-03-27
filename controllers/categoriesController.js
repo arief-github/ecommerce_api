@@ -1,6 +1,6 @@
 import Category from "../models/Category.js";
 import asyncHandler from "express-async-handler";
-import {createError} from "../helpers/createError.js";
+import { createError } from "../helpers/createError.js";
 
 /**
  * @desc   Create new category
@@ -8,23 +8,28 @@ import {createError} from "../helpers/createError.js";
  * @access Private/Admin
  **/
 
-export const createCategoryController = asyncHandler(async(req, res) => {
+export const createCategoryController = asyncHandler(async (req, res) => {
     const { name } = req.body;
 
-//     check if category exists
+    //  check if category exists
 
     const categoryFound = await Category.findOne({ name });
 
-    if(categoryFound) {
+    if (categoryFound) {
         throw createError('Category Existed', 400);
     }
 
-//     create
-    const category = await Category.create({
+    const categoryData = {
         name: name.toLowerCase(),
-        user: req.userAuthId,
-        image: req.file.path,
-    });
+        user: req.userAuthId
+    }
+
+    if (req.file) {
+        categoryData.image = req.file.path
+    }
+
+    //  create
+    const category = await Category.create(categoryData);
 
     res.status(201).json({
         status: "success",
@@ -39,7 +44,7 @@ export const createCategoryController = asyncHandler(async(req, res) => {
  * @access Public
  **/
 
-export const getAllCategoriesController = asyncHandler(async(req, res) => {
+export const getAllCategoriesController = asyncHandler(async (req, res) => {
     const categories = await Category.find();
 
     res.status(201).json({
@@ -55,7 +60,7 @@ export const getAllCategoriesController = asyncHandler(async(req, res) => {
  * @access Public
  **/
 
-export const getSingleCategoriesController = asyncHandler(async(req, res) => {
+export const getSingleCategoriesController = asyncHandler(async (req, res) => {
     const category = await Category.findById(req.params.id);
 
     res.status(201).json({
@@ -71,14 +76,14 @@ export const getSingleCategoriesController = asyncHandler(async(req, res) => {
  * @access Private/Admin
  **/
 
-export const updateCategoryController = asyncHandler(async(req, res) => {
+export const updateCategoryController = asyncHandler(async (req, res) => {
     const { name } = req.body;
 
-//     update
+    //     update
     const category = await Category.findByIdAndUpdate(
         req.params.id, {
-            name
-        },
+        name
+    },
         {
             new: true
         }
@@ -97,7 +102,7 @@ export const updateCategoryController = asyncHandler(async(req, res) => {
  * @access Private/Admin
  **/
 
-export const deleteCategoryController = asyncHandler(async(req, res) => {
+export const deleteCategoryController = asyncHandler(async (req, res) => {
     await Category.findByIdAndDelete(req.params.id);
 
     res.status(201).json({
