@@ -11,69 +11,62 @@ import Brand from "../models/Brand.js";
  **/
 
 export const createProductController = asyncHandler(async(req, res) => {
-    try {
-        console.log(req.files);
+    const { name, description, category, sizes, colors, brand,price, totalQty } = req.body;
+    
+    // handling for upload
+    const convertedImages = req.files.map((file) => file?.path);
 
-        const { name, description, category, sizes, colors, brand,price, totalQty } = req.body;
-    
-        // handling for upload
-        const convertedImages = req.files.map((file) => file?.path);
-    
-        // Checking product exists
-        const productExists = await Product.findOne({ name });
-    
-        if (productExists) {
-            throw createError('Product Already Exists', 400);
-        }
-    
-        // find the category
-        const categoryFound = await Category.findOne({
-            name: category,
-        })
-    
-        // find the brand
-        const brandFound = await Brand.findOne({
-            name: brand.toLowerCase()
-        })
-    
-        if(!categoryFound) {
-            throw createError("Category not found, please create category first or check category name", 400)
-        } else if (!brandFound) {
-            throw createError("Brand not found", 400);
-        }
-    
-        // create the product
-        const product = await Product.create({
-            name,
-            description,
-            category,
-            sizes,
-            colors,
-            brand,
-            user: req.userAuthId,
-            price,
-            totalQty,
-            images: convertedImages
-        });
-    
-        // push the product into category and brand
-        categoryFound.products.push(product._id);
-        brandFound.products.push(product._id);
-    
-        // re-save
-        await categoryFound.save()
-        await brandFound.save()
-    
-        // send response
-        res.status(201).json({
-            status: "success",
-            msg: "Product Created Successfully",
-            product,
-        });
-    
-    } catch(error) {
-        console.log(error)
+    // Checking product exists
+    const productExists = await Product.findOne({ name });
+
+    if (productExists) {
+        throw createError('Product Already Exists', 400);
     }
+
+    // find the category
+    const categoryFound = await Category.findOne({
+        name: category,
+    })
+
+    // find the brand
+    const brandFound = await Brand.findOne({
+        name: brand.toLowerCase()
+    })
+
+    if(!categoryFound) {
+        throw createError("Category not found, please create category first or check category name", 400)
+    } else if (!brandFound) {
+        throw createError("Brand not found", 400);
+    }
+
+    // create the product
+    const product = await Product.create({
+        name,
+        description,
+        category,
+        sizes,
+        colors,
+        brand,
+        user: req.userAuthId,
+        price,
+        totalQty,
+        images: convertedImages
+    });
+
+    // push the product into category and brand
+    categoryFound.products.push(product._id);
+    brandFound.products.push(product._id);
+
+    // re-save
+    await categoryFound.save()
+    await brandFound.save()
+
+    // send response
+    res.status(201).json({
+        status: "success",
+        msg: "Product Created Successfully",
+        product,
+    });
    
 });
 

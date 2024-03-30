@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import Brand from "../models/Brand.js";
-import {createError} from "../helpers/createError.js";
+import { createError } from "../helpers/createError.js";
 
 /**
  * @desc   Create new brand
@@ -8,17 +8,21 @@ import {createError} from "../helpers/createError.js";
  * @access Private/Admin
  **/
 
-export const createBrandController = asyncHandler(async(req, res) => {
+export const createBrandController = asyncHandler(async (req, res) => {
     const { name } = req.body;
 
-//     check if brand exists
+    //     check if brand exists
     const brandFound = await Brand.findOne({ name });
 
     if (brandFound) {
         throw createError("Brand already exists")
     }
 
-//     create brand
+    if (!name) {
+        throw createError("Please provide brand name", 400);
+    }
+
+    //     create brand
     const brand = await Brand.create({
         name: name.toLowerCase(),
         user: req.userAuthId
@@ -37,7 +41,7 @@ export const createBrandController = asyncHandler(async(req, res) => {
  * @access Public
  **/
 
-export const getAllBrandsController = asyncHandler(async(req, res) => {
+export const getAllBrandsController = asyncHandler(async (req, res) => {
     const brands = await Brand.find();
 
     res.status(201).json({
@@ -53,7 +57,7 @@ export const getAllBrandsController = asyncHandler(async(req, res) => {
  * @access Public
  **/
 
-export const getSingleBrandController = asyncHandler(async(req, res) => {
+export const getSingleBrandController = asyncHandler(async (req, res) => {
     const brand = await Brand.findById(req.params.id);
 
     res.status(201).json({
@@ -69,14 +73,14 @@ export const getSingleBrandController = asyncHandler(async(req, res) => {
 * @access Private/Admin
 **/
 
-export const updateBrandController = asyncHandler(async(req, res) => {
+export const updateBrandController = asyncHandler(async (req, res) => {
     const { name } = req.body;
 
-//     update
+    //     update
     const brand = await Brand.findByIdAndUpdate(
         req.params.id, {
-            name
-        },
+        name
+    },
         {
             new: true
         }
@@ -95,7 +99,7 @@ export const updateBrandController = asyncHandler(async(req, res) => {
  * @access Private/Admin
  **/
 
-export const deleteBrandController = asyncHandler(async(req, res) => {
+export const deleteBrandController = asyncHandler(async (req, res) => {
     await Brand.findByIdAndDelete(req.params.id);
 
     res.status(201).json({
